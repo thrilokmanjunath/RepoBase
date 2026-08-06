@@ -61,3 +61,33 @@ def create_repository(request, payload: RepositoryCreateSchema):
         repo.tags.add(tag)
         
     return repo
+
+@api.put("/repos/{repo_id}", response=RepositorySchema)
+def update_repository(request, repo_id: int, payload: RepositoryCreateSchema):
+    if not request.user.is_authenticated:
+        return api.create_response(request, {"detail": "Authentication required"}, status=401)
+        
+    repo = get_object_or_404(Repository, id=repo_id, owner=request.user)
+    
+    repo.name = payload.name
+    repo.description = payload.description
+    repo.url = payload.url
+    repo.is_public = payload.is_public
+    repo.save()
+    
+    # Handle tags
+    repo.tags.clear()
+    for tag_name in payload.tag_names:
+        tag, _ = Tag.objects.get_or_create(name=tag_name)
+        repo.tags.add(tag)
+        
+    return repo
+
+@api.delete("/repos/{repo_id}")
+def delete_repository(request, repo_id: int):
+    if not request.user.is_authenticated:
+        return api.create_response(request, {"detail": "Authentication required"}, status=401)
+        
+    repo = get_object_or_404(Repository, id=repo_id, owner=request.user)
+    repo.delete()
+    return {"success": True}

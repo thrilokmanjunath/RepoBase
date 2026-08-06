@@ -25,3 +25,25 @@ def test_api_list_repositories(client):
     data = response.json()
     assert len(data) == 1
     assert data[0]['name'] == 'Public Repo'
+
+@pytest.mark.django_db
+def test_api_update_and_delete_repository(client):
+    user = User.objects.create_user(username='apiuser2', password='password123')
+    client.force_login(user)
+    
+    # Create repo
+    repo = Repository.objects.create(owner=user, name='Initial Name')
+    
+    # Update via PUT
+    response = client.put(
+        f'/api/repos/{repo.id}',
+        data={'name': 'Updated Name', 'is_public': True, 'tag_names': ['newtag']},
+        content_type='application/json'
+    )
+    assert response.status_code == 200
+    assert response.json()['name'] == 'Updated Name'
+    
+    # Delete via DELETE
+    del_response = client.delete(f'/api/repos/{repo.id}')
+    assert del_response.status_code == 200
+    assert Repository.objects.filter(id=repo.id).count() == 0
