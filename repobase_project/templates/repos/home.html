@@ -1,0 +1,116 @@
+{% extends "repos/base.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 3rem; margin-top: 2rem;">
+    {% if user.is_authenticated %}
+        <h1>Welcome to your Dashboard, {{ user.username }}</h1>
+        <p>Manage your repositories with ease and speed.</p>
+        <div style="margin-top: 2rem;">
+            <a href="#" class="btn btn-primary">Create Repository</a>
+            <a href="#" class="btn btn-secondary" style="margin-left: 1rem;">View Analytics</a>
+        </div>
+    {% else %}
+        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">The Best Place to Host Your Code</h1>
+        <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem auto;">
+            RepoBase provides a premium, fast, and secure platform for managing your repositories.
+            Join thousands of developers building the future.
+        </p>
+        <div>
+            <a href="{% url 'signup' %}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.75rem 2rem;">Get Started</a>
+        </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2>Your Repositories</h2>
+        <div class="form-group" style="margin-bottom: 0; width: 300px;">
+            <input type="text" id="searchInput" placeholder="Search repositories..." style="padding: 0.5rem 1rem;">
+        </div>
+    </div>
+    
+    <div class="grid" id="repo-grid">
+        <!-- Loader -->
+        <div id="loader" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">Loading repositories...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('repo-grid');
+            const searchInput = document.getElementById('searchInput');
+
+            const fetchRepos = async (query = '') => {
+                try {
+                    const response = await fetch(`/api/repos?search=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    renderRepos(data);
+                } catch (error) {
+                    grid.innerHTML = '<div style="grid-column: 1 / -1; color: var(--danger);">Failed to load repositories.</div>';
+                }
+            };
+
+            const renderRepos = (repos) => {
+                const newRepoCard = `
+                    <div class="card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-style: dashed; background: transparent; cursor: pointer; min-height: 150px;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 1rem;">
+                            <path d="M12 5v14M5 12h14"></path>
+                        </svg>
+                        <span style="color: var(--text-muted); font-weight: 500;">New Repository</span>
+                    </div>
+                `;
+
+                if (repos.length === 0) {
+                    grid.innerHTML = newRepoCard + '<div style="grid-column: 1 / -1; color: var(--text-muted); margin-top: 1rem;">No repositories found.</div>';
+                    return;
+                }
+
+                const repoCards = repos.map(repo => `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <h3 style="margin: 0;">${repo.name}</h3>
+                            <span style="font-size: 0.75rem; background: var(--surface-hover); padding: 0.2rem 0.5rem; border-radius: 12px; border: 1px solid var(--border);">${repo.is_public ? 'Public' : 'Private'}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; margin-bottom: 1rem; min-height: 40px;">${repo.description || 'No description provided.'}</p>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            ${repo.tags.map(tag => `<span style="font-size: 0.75rem; background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: 4px;">#${tag.name}</span>`).join('')}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
+                            <span>${repo.views_count} views</span>
+                            ${repo.url ? `<a href="${repo.url}" target="_blank" style="color: var(--primary); text-decoration: none;">Visit -></a>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                grid.innerHTML = newRepoCard + repoCards;
+            };
+
+            // Debounce search
+            let timeout = null;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    fetchRepos(e.target.value);
+                }, 300);
+            });
+
+            // Initial fetch
+            fetchRepos();
+        });
+    </script>
+{% else %}
+    <div class="grid" style="margin-top: 4rem;">
+        <div class="card">
+            <h3 style="margin-bottom: 0.5rem;">Lightning Fast</h3>
+            <p style="margin-bottom: 0; font-size: 0.95rem;">Experience zero-latency operations powered by edge caching and optimized queries.</p>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom: 0.5rem;">Secure by Default</h3>
+            <p style="margin-bottom: 0; font-size: 0.95rem;">Enterprise-grade security, CSRF protection, and strictly enforced rate limits.</p>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom: 0.5rem;">Beautiful UI</h3>
+            <p style="margin-bottom: 0; font-size: 0.95rem;">Carefully crafted interfaces focused on accessibility and seamless developer experience.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

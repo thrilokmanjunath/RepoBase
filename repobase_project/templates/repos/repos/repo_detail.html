@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{{ object.name }}</h2>
+  <p>{{ object.description|linebreaks }}</p>
+  {% if object.url %}<p>URL: <a href="{{ object.url }}">{{ object.url }}</a></p>{% endif %}
+  <p>Owner: {{ object.owner.username }}</p>
+  {% if user == object.owner %}
+    <p>
+      <a href="{% url 'repo-edit' object.pk %}">Edit</a> |
+      <a href="{% url 'repo-delete' object.pk %}">Delete</a>
+    </p>
+  {% endif %}
+{% endblock %}

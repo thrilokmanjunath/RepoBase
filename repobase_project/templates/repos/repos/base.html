@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}RepoBase{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header>
+    <h1><a href="{% url 'repo-list' %}">RepoBase</a></h1>
+    <nav>
+      <a href="{% url 'repo-list' %}">Home</a> |
+      <a href="{% url 'contact' %}">Contact</a> |
+      {% if user.is_authenticated %}
+        Hello {{ user.username }} | <a href="{% url 'logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Signup</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if messages %}
+      <ul class="messages">{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    <p>RepoBase — demo for Unit 2 & 3 labs</p>
+  </footer>
+</body>
+</html>
