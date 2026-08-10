@@ -33,3 +33,6 @@ def logout_view(request):
 
 def home_view(request):
   return render(request,'repos/home.html')
+
+def repo_detail_view(request, repo_id):
+  return render(request, 'repos/repo_detail.html', {'repo_id': repo_id})

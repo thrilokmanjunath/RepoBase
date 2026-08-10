@@ -1,108 +1,125 @@
 {% extends "repos/base.html" %}
 
+{% block breadcrumbs %}
+    <span style="color: var(--text-muted);">RepoBase</span> <span>/</span> <strong>Dashboard</strong>
+{% endblock %}
+
 {% block content %}
-<!-- CSRF Token for JavaScript -->
+<!-- CSRF Token for API calls -->
 {% csrf_token %}
 <script>
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    window.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 </script>
 
-<div style="text-align: center; margin-bottom: 3rem; margin-top: 2rem;">
-    {% if user.is_authenticated %}
-        <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Welcome to your Dashboard, {{ user.username }}</h1>
-        <p style="font-size: 1.15rem; max-width: 500px; margin: 0 auto;">Manage your repositories with ease, speed, and style.</p>
-        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
-            <button onclick="openModal('createRepoModal')" class="btn btn-primary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Create Repository
-            </button>
-            <a href="#" class="btn btn-secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                View Analytics
-            </a>
-        </div>
-    {% else %}
-        <h1 style="font-size: 3.5rem; margin-bottom: 1.5rem; line-height: 1.1;">The Best Place to <br>Host Your Code</h1>
-        <p style="font-size: 1.25rem; max-width: 600px; margin: 0 auto 2rem auto; color: var(--text-muted);">
-            RepoBase provides a premium, fast, and secure platform for managing your repositories.
-            Join thousands of developers building the future.
-        </p>
-        <div>
-            <a href="{% url 'signup' %}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.85rem 2.5rem;">Get Started Free</a>
-        </div>
-    {% endif %}
-</div>
-
 {% if user.is_authenticated %}
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-        <div>
-            <h2>Your Repositories</h2>
-            <p style="margin: 0; font-size: 0.95rem;">Recently updated repositories</p>
-        </div>
-        <div class="form-group" style="margin-bottom: 0; width: 300px;">
-            <input type="text" id="searchInput" placeholder="Search repositories..." style="border-radius: 20px; padding: 0.6rem 1.2rem;">
+    <!-- Hero Section -->
+    <div style="margin-bottom: var(--space-6);">
+        <h1 style="font-size: 2rem; margin-bottom: var(--space-2);">Good afternoon, {{ user.username }} 👋</h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: var(--space-5);">Your development universe at a glance.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4);">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--accent);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div>
+                    <h3 id="stat-repo-count" style="font-size: 1.5rem; margin-bottom: 2px;">--</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Active Repositories</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <div>
+                    <h3 id="stat-views-count" style="font-size: 1.5rem; margin-bottom: 2px;">--</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Total Views</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border: 1px dashed var(--border-active); background: transparent; cursor: pointer; justify-content: center;" id="btn-create-repo-global" onclick="openModal('createRepoModal')">
+                <div style="display:flex; align-items:center; gap:var(--space-2); color:var(--text-primary); font-weight:500;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    New Repository
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div class="grid" id="repo-grid">
+
+    <!-- Toolbar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+        <h2 style="font-size: 1.25rem;">Recent Projects</h2>
+        <div class="form-group" style="margin-bottom: 0; width: 300px;">
+            <div style="position:relative;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="position:absolute; left:12px; top:12px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" class="input-field" placeholder="Filter repositories..." style="padding-left: 36px; border-radius: var(--radius-full);">
+            </div>
+        </div>
+    </div>
+
+    <!-- Repositories Grid -->
+    <div class="grid-repos" id="repo-grid">
         <!-- Skeleton Loaders -->
-        <div class="card skeleton" style="height: 180px;"></div>
-        <div class="card skeleton" style="height: 180px;"></div>
-        <div class="card skeleton" style="height: 180px;"></div>
+        <div class="card skeleton" style="height: 200px;"></div>
+        <div class="card skeleton" style="height: 200px;"></div>
+        <div class="card skeleton" style="height: 200px;"></div>
     </div>
 
     <!-- Create Repo Modal -->
     <div id="createRepoModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 style="margin: 0; font-size: 1.5rem;">New Repository</h2>
-                <button onclick="closeModal('createRepoModal')" class="modal-close">&times;</button>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-5);">
+                <h2 style="margin: 0; font-size: 1.25rem;">Create Repository</h2>
+                <button onclick="closeModal('createRepoModal')" class="btn-icon">&times;</button>
             </div>
             <form id="createRepoForm">
                 <div class="form-group">
-                    <label>Repository Name</label>
-                    <input type="text" id="repoName" required placeholder="e.g. repobase-v2">
+                    <label>Repository Name <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="repoName" class="input-field" required placeholder="e.g. repobase-v2">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="repoDesc" rows="3" placeholder="Brief description..."></textarea>
+                    <textarea id="repoDesc" class="input-field" rows="3" placeholder="Brief description of your project..."></textarea>
                 </div>
                 <div class="form-group">
                     <label>Project URL (Optional)</label>
-                    <input type="url" id="repoUrl" placeholder="https://...">
+                    <input type="url" id="repoUrl" class="input-field" placeholder="https://...">
                 </div>
-                <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <input type="checkbox" id="repoPublic" checked style="width: auto;">
-                    <label style="margin: 0;">Make Public</label>
+                <div class="form-group" style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4);">
+                    <input type="checkbox" id="repoPublic" checked style="accent-color: var(--accent); width: 16px; height: 16px;">
+                    <label style="margin: 0; cursor:pointer;" for="repoPublic">Make this repository public</label>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Create Repository</button>
+                <div style="display:flex; justify-content:flex-end; gap:var(--space-3); margin-top:var(--space-6);">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createRepoModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Repository</button>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- Delete Confirm Modal -->
     <div id="deleteRepoModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-            <h2 style="margin-bottom: 0.5rem;">Delete Repository?</h2>
-            <p style="margin-bottom: 1.5rem;">This action cannot be undone. Are you sure you want to delete this repository?</p>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <button onclick="closeModal('deleteRepoModal')" class="btn btn-secondary">Cancel</button>
-                <button id="confirmDeleteBtn" class="btn btn-danger">Yes, Delete</button>
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; text-align: center;">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: rgba(244,63,94,0.1); color: var(--danger); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </div>
+            <h2 style="margin-bottom: var(--space-2);">Delete Repository?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">This action cannot be undone. Are you sure you want to permanently delete this repository and all its data?</p>
+            <div style="display: flex; gap: var(--space-3); justify-content: center;">
+                <button onclick="closeModal('deleteRepoModal')" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn btn-danger" style="flex:1; justify-content:center;">Yes, delete</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Modal Logic
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         
         let repoToDelete = null;
-        function promptDelete(id) {
+        window.promptDelete = (id) => {
             repoToDelete = id;
             openModal('deleteRepoModal');
-        }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('repo-grid');
@@ -111,63 +128,81 @@
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
             const fetchRepos = async (query = '') => {
-                grid.innerHTML = '<div class="card skeleton" style="height: 180px;"></div><div class="card skeleton" style="height: 180px;"></div><div class="card skeleton" style="height: 180px;"></div>';
+                grid.innerHTML = '<div class="card skeleton" style="height: 200px;"></div><div class="card skeleton" style="height: 200px;"></div><div class="card skeleton" style="height: 200px;"></div>';
                 try {
                     const response = await fetch(`/api/repos?search=${encodeURIComponent(query)}`);
                     const data = await response.json();
                     renderRepos(data);
                 } catch (error) {
-                    grid.innerHTML = '<div style="grid-column: 1 / -1; color: var(--danger);">Failed to load repositories.</div>';
+                    grid.innerHTML = '<div class="empty-state"><p style="color:var(--danger)">Failed to load repositories.</p></div>';
                 }
             };
 
             const renderRepos = (repos) => {
-                const newRepoCard = `
-                    <div class="card" onclick="openModal('createRepoModal')" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-style: dashed; background: rgba(30, 41, 59, 0.4); cursor: pointer; min-height: 180px;">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;">
-                            <path d="M12 5v14M5 12h14"></path>
-                        </svg>
-                        <span style="color: var(--text-main); font-weight: 600;">Create New Repository</span>
-                        <span style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">Start something amazing</span>
-                    </div>
-                `;
+                // Update stats
+                document.getElementById('stat-repo-count').innerText = repos.length;
+                document.getElementById('stat-views-count').innerText = repos.reduce((sum, r) => sum + r.views_count, 0);
 
                 if (repos.length === 0) {
-                    grid.innerHTML = newRepoCard + '<div style="grid-column: 1 / -1; color: var(--text-muted); margin-top: 1rem;">No repositories found.</div>';
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--border-active)" stroke-width="1" style="margin-bottom:var(--space-4);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            <h3 style="margin-bottom:var(--space-2);">Your development universe is empty.</h3>
+                            <p style="color:var(--text-muted); margin-bottom:var(--space-5);">Create your first repository and start organizing your projects.</p>
+                            <button onclick="openModal('createRepoModal')" class="btn btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Create Repository
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
 
-                const repoCards = repos.map(repo => `
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                            <h3 style="margin: 0; font-size: 1.25rem;">${repo.name}</h3>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <span class="${repo.is_public ? 'badge-public' : 'badge-private'}">${repo.is_public ? 'Public' : 'Private'}</span>
-                                <!-- Delete Button -->
-                                <button onclick="promptDelete(${repo.id})" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding: 4px; border-radius: 4px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'; this.style.background='rgba(244,63,94,0.1)'" onmouseout="this.style.color='var(--text-muted)'; this.style.background='none'">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
+                grid.innerHTML = repos.map(repo => {
+                    const identityColor = window.getRepoIdentity(repo.name);
+                    return `
+                    <div class="card" onclick="window.location.href='/repo/${repo.id}/'" style="cursor:pointer;">
+                        <div class="repo-card-actions" onclick="event.stopPropagation()">
+                            <button onclick="window.location.href='/repo/${repo.id}/'" class="btn-icon" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                            <button onclick="promptDelete(${repo.id})" class="btn-icon" title="Delete" style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                        </div>
+                        
+                        <div class="repo-card-header">
+                            <div class="repo-identity" style="background: linear-gradient(135deg, ${identityColor}, var(--surface-elevated));">
+                                ${repo.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.1rem; margin-bottom: 2px;">${repo.name}</h3>
+                                <span class="tag ${repo.is_public ? 'tag-public' : 'tag-private'}">${repo.is_public ? 'Public' : 'Private'}</span>
                             </div>
                         </div>
-                        <p style="font-size: 0.9rem; margin-bottom: 1.25rem; min-height: 44px; color: var(--text-muted);">${repo.description || 'No description provided.'}</p>
+                        
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); min-height: 44px; margin-bottom: var(--space-4); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                            ${repo.description || 'No description provided.'}
+                        </p>
+                        
                         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
                                 ${repo.tags.map(tag => `<span class="tag">#${tag.name}</span>`).join('')}
                             </div>
-                            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.85rem;">
-                                <span style="display: flex; align-items: center; gap: 0.25rem; color: var(--text-muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> ${repo.views_count}</span>
-                                ${repo.url ? `<a href="${repo.url}" target="_blank" style="color: var(--primary); font-weight: 500; text-decoration: none;">Visit &rarr;</a>` : ''}
+                            <div style="display: flex; align-items: center; gap: var(--space-2); font-size: 0.8rem; color: var(--text-muted);">
+                                <span style="display:flex; align-items:center; gap:4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 
+                                    ${repo.views_count}
+                                </span>
                             </div>
                         </div>
                     </div>
-                `).join('');
-
-                grid.innerHTML = newRepoCard + repoCards;
+                `}).join('');
             };
 
             // Handle Create
             createForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const submitBtn = createForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Creating...';
+
                 const payload = {
                     name: document.getElementById('repoName').value,
                     description: document.getElementById('repoDesc').value,
@@ -181,7 +216,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
+                            'X-CSRFToken': window.csrfToken
                         },
                         body: JSON.stringify(payload)
                     });
@@ -189,33 +224,42 @@
                     if (res.ok) {
                         closeModal('createRepoModal');
                         createForm.reset();
-                        showToast('Repository created successfully!', 'success');
+                        window.showToast('Repository created successfully', 'success');
                         fetchRepos(searchInput.value);
                     } else {
-                        showToast('Failed to create repository.', 'error');
+                        window.showToast('Failed to create repository.', 'error');
                     }
                 } catch (err) {
-                    showToast('An error occurred.', 'error');
+                    window.showToast('An error occurred.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Create Repository';
                 }
             });
 
             // Handle Delete
             confirmDeleteBtn.addEventListener('click', async () => {
                 if (!repoToDelete) return;
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.innerHTML = 'Deleting...';
+                
                 try {
                     const res = await fetch(`/api/repos/${repoToDelete}`, {
                         method: 'DELETE',
-                        headers: { 'X-CSRFToken': csrfToken }
+                        headers: { 'X-CSRFToken': window.csrfToken }
                     });
                     if (res.ok) {
                         closeModal('deleteRepoModal');
-                        showToast('Repository deleted.', 'success');
+                        window.showToast('Repository deleted permanently.', 'success');
                         fetchRepos(searchInput.value);
                     } else {
-                        showToast('Failed to delete.', 'error');
+                        window.showToast('Failed to delete.', 'error');
                     }
                 } catch(err) {
-                    showToast('An error occurred.', 'error');
+                    window.showToast('An error occurred.', 'error');
+                } finally {
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.innerHTML = 'Yes, delete';
                 }
             });
 
@@ -223,7 +267,7 @@
             let timeout = null;
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(timeout);
-                timeout = setTimeout(() => fetchRepos(e.target.value), 300);
+                timeout = setTimeout(() => fetchRepos(e.target.value), 250);
             });
 
             // Initial fetch
@@ -231,27 +275,45 @@
         });
     </script>
 {% else %}
-    <div class="grid" style="margin-top: 4rem;">
-        <div class="card">
-            <div style="background: rgba(139, 92, 246, 0.1); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            </div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Lightning Fast</h3>
-            <p style="margin-bottom: 0; font-size: 0.95rem;">Experience zero-latency operations powered by edge caching and optimized queries.</p>
+    <!-- Logged out marketing landing -->
+    <div style="text-align: center; margin-top: 10vh; margin-bottom: 15vh;">
+        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; background:rgba(99, 102, 241, 0.1); color:var(--accent); border-radius:999px; font-size:0.85rem; font-weight:600; margin-bottom:var(--space-6);">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); animation: pulse 2s infinite;"></span>
+            RepoBase 2.0 is here
         </div>
-        <div class="card">
-            <div style="background: rgba(16, 185, 129, 0.1); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            </div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Secure by Default</h3>
-            <p style="margin-bottom: 0; font-size: 0.95rem;">Enterprise-grade security, CSRF protection, and strictly enforced rate limits.</p>
+        <h1 style="font-size: 4rem; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: var(--space-4); background: linear-gradient(to right, #fff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            The operating system <br>for your repositories.
+        </h1>
+        <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto var(--space-6);">
+            A premium, fast, and secure platform for managing your developer workflow. Built for speed. Designed for power users.
+        </p>
+        <div style="display: flex; gap: var(--space-3); justify-content: center;">
+            <a href="{% url 'signup' %}" class="btn btn-primary" style="padding: var(--space-3) var(--space-6); font-size: 1.1rem;">Get Started for Free</a>
+            <a href="{% url 'login' %}" class="btn btn-secondary" style="padding: var(--space-3) var(--space-6); font-size: 1.1rem;">Sign In</a>
         </div>
-        <div class="card">
-            <div style="background: rgba(236, 72, 153, 0.1); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+    </div>
+    
+    <div class="grid-repos" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="card" style="text-align:center;">
+            <div style="width:48px; height:48px; border-radius:var(--radius-md); background:rgba(99, 102, 241, 0.1); color:var(--accent); display:flex; align-items:center; justify-content:center; margin:0 auto var(--space-4);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Premium Aesthetics</h3>
-            <p style="margin-bottom: 0; font-size: 0.95rem;">Carefully crafted interfaces focused on accessibility, dark mode, and seamless UX.</p>
+            <h3 style="margin-bottom:var(--space-2);">Lightning Fast</h3>
+            <p style="color:var(--text-secondary); font-size:0.95rem;">Experience zero-latency operations with optimistic UI updates and edge caching.</p>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div style="width:48px; height:48px; border-radius:var(--radius-md); background:rgba(236, 72, 153, 0.1); color:var(--secondary); display:flex; align-items:center; justify-content:center; margin:0 auto var(--space-4);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+            </div>
+            <h3 style="margin-bottom:var(--space-2);">Premium Design</h3>
+            <p style="color:var(--text-secondary); font-size:0.95rem;">Carefully crafted interfaces focused on accessibility, dark mode, and seamless UX.</p>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div style="width:48px; height:48px; border-radius:var(--radius-md); background:rgba(16, 185, 129, 0.1); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto var(--space-4);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h3 style="margin-bottom:var(--space-2);">Secure by Default</h3>
+            <p style="color:var(--text-secondary); font-size:0.95rem;">Enterprise-grade security, CSRF protection, and strictly enforced rate limits.</p>
         </div>
     </div>
 {% endif %}
