@@ -10,6 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalShortcuts();
 });
 
+// --- Security Utilities ---
+window.escapeHTML = (str) => {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+};
+
 // --- Toast System ---
 function initToasts() {
     // Expose globally
@@ -172,8 +186,8 @@ function initCommandPalette() {
             <div class="cmd-item ${idx === 0 ? 'active' : ''}" data-idx="${idx}">
                 <div class="cmd-item-icon">${getIcon(item.icon)}</div>
                 <div style="display:flex; flex-direction:column;">
-                    <span style="font-weight:500;">${item.title}</span>
-                    ${item.subtitle ? `<span style="font-size:0.75rem; opacity:0.7;">${item.subtitle}</span>` : ''}
+                    <span style="font-weight:500;">${window.escapeHTML(item.title)}</span>
+                    ${item.subtitle ? `<span style="font-size:0.75rem; opacity:0.7;">${window.escapeHTML(item.subtitle)}</span>` : ''}
                 </div>
             </div>
         `).join('');

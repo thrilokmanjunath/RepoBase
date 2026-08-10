@@ -1,6 +1,7 @@
 from typing import List
 from django.shortcuts import get_object_or_404
-from ninja import NinjaAPI, Schema
+from django.http import Http404
+from ninja import NinjaAPI, Schema, Field
 from .models import Repository, Tag
 
 api = NinjaAPI(title="RepoBase API", description="High-performance API for RepoBase")
@@ -20,9 +21,9 @@ class RepositorySchema(Schema):
     tags: List[TagSchema]
 
 class RepositoryCreateSchema(Schema):
-    name: str
-    description: str = ""
-    url: str = ""
+    name: str = Field(..., max_length=100)
+    description: str = Field("", max_length=500)
+    url: str = Field("", max_length=200)
     is_public: bool = True
     tag_names: List[str] = []
 
@@ -39,6 +40,10 @@ def list_repositories(request, search: str = None):
 @api.get("/repos/{repo_id}", response=RepositorySchema)
 def get_repository(request, repo_id: int):
     repo = get_object_or_404(Repository, id=repo_id)
+    if not repo.is_public:
+        if not request.user.is_authenticated or repo.owner != request.user:
+            raise Http404("No Repository matches the given query.")
+    
     repo.views_count += 1
     repo.save(update_fields=['views_count'])
     return repo

@@ -169,16 +169,16 @@
                         
                         <div class="repo-card-header">
                             <div class="repo-identity" style="background: linear-gradient(135deg, ${identityColor}, var(--surface-elevated));">
-                                ${repo.name.charAt(0).toUpperCase()}
+                                ${window.escapeHTML(repo.name.charAt(0).toUpperCase())}
                             </div>
                             <div style="flex: 1;">
-                                <h3 style="font-size: 1.1rem; margin-bottom: 2px;">${repo.name}</h3>
+                                <h3 style="font-size: 1.1rem; margin-bottom: 2px;">${window.escapeHTML(repo.name)}</h3>
                                 <span class="tag ${repo.is_public ? 'tag-public' : 'tag-private'}">${repo.is_public ? 'Public' : 'Private'}</span>
                             </div>
                         </div>
                         
                         <p style="font-size: 0.9rem; color: var(--text-secondary); min-height: 44px; margin-bottom: var(--space-4); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                            ${repo.description || 'No description provided.'}
+                            ${window.escapeHTML(repo.description) || 'No description provided.'}
                         </p>
                         
                         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
