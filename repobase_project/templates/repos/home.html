@@ -132,7 +132,13 @@
                 try {
                     const response = await fetch(`/api/repos?search=${encodeURIComponent(query)}`);
                     const data = await response.json();
-                    renderRepos(data);
+                    if (data && data.success && data.data && data.data.items) {
+                        renderRepos(data.data.items);
+                    } else if (Array.isArray(data)) {
+                        renderRepos(data);
+                    } else {
+                        throw new Error('Invalid data format');
+                    }
                 } catch (error) {
                     grid.innerHTML = '<div class="empty-state"><p style="color:var(--danger)">Failed to load repositories.</p></div>';
                 }
@@ -221,13 +227,16 @@
                         body: JSON.stringify(payload)
                     });
                     
-                    if (res.ok) {
+                    const resData = await res.json();
+                    
+                    if (res.ok && resData.success) {
                         closeModal('createRepoModal');
                         createForm.reset();
                         window.showToast('Repository created successfully', 'success');
                         fetchRepos(searchInput.value);
                     } else {
-                        window.showToast('Failed to create repository.', 'error');
+                        const errorMsg = resData?.error?.message || 'Failed to create repository.';
+                        window.showToast(errorMsg, 'error');
                     }
                 } catch (err) {
                     window.showToast('An error occurred.', 'error');
@@ -248,12 +257,20 @@
                         method: 'DELETE',
                         headers: { 'X-CSRFToken': window.csrfToken }
                     });
+                    
+                    // Since DELETE can sometimes not return JSON or we might just use res.ok
                     if (res.ok) {
                         closeModal('deleteRepoModal');
                         window.showToast('Repository deleted permanently.', 'success');
                         fetchRepos(searchInput.value);
                     } else {
-                        window.showToast('Failed to delete.', 'error');
+                        try {
+                            const resData = await res.json();
+                            const errorMsg = resData?.error?.message || 'Failed to delete.';
+                            window.showToast(errorMsg, 'error');
+                        } catch(e) {
+                            window.showToast('Failed to delete.', 'error');
+                        }
                     }
                 } catch(err) {
                     window.showToast('An error occurred.', 'error');

@@ -17,7 +17,7 @@
     
     --text-primary: #ffffff;
     --text-secondary: #a1a1aa;
-    --text-muted: #82828c;
+    --text-muted: #9ca3af; /* Improved contrast for accessibility */
     
     --accent: #6366f1;            /* Indigo - modern, technical */
     --accent-hover: #4f46e5;
@@ -664,5 +664,17 @@ h1, h2, h3, h4, h5, h6 {
     
     .top-actions .cmd-trigger kbd {
         display: none;
+    }
+}
+
+/* ==========================================================================
+   Accessibility & Reduced Motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

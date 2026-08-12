@@ -1,6 +1,7 @@
 annotated-types==0.8.0
 asgiref==3.12.1
 Django==5.2.8
+django-cors-headers==4.9.0
 django-csp==4.0
 django-ninja==1.6.2
 iniconfig==2.3.0

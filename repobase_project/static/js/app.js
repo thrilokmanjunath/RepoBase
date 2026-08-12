@@ -146,10 +146,30 @@ function initCommandPalette() {
 
     // Fetch repos for search
     let reposCache = [];
-    fetch('/api/repos')
+    fetch('/api/repos?size=100') // Get more items for client-side search
         .then(res => res.json())
-        .then(data => { reposCache = data; })
+        .then(data => { 
+            if (data && data.success && data.data && data.data.items) {
+                reposCache = data.data.items;
+            } else if (Array.isArray(data)) {
+                // Fallback for old API if still cached
+                reposCache = data;
+            }
+        })
         .catch(() => {});
+
+    // Debounce helper
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 
     window.renderCmdResults = (query) => {
         const q = query.toLowerCase();
@@ -182,8 +202,14 @@ function initCommandPalette() {
             return;
         }
 
+        resultsContainer.setAttribute('role', 'listbox');
+        
         resultsContainer.innerHTML = items.map((item, idx) => `
-            <div class="cmd-item ${idx === 0 ? 'active' : ''}" data-idx="${idx}">
+            <div class="cmd-item ${idx === 0 ? 'active' : ''}" 
+                 data-idx="${idx}" 
+                 id="cmd-item-${idx}" 
+                 role="option" 
+                 aria-selected="${idx === 0}">
                 <div class="cmd-item-icon">${getIcon(item.icon)}</div>
                 <div style="display:flex; flex-direction:column;">
                     <span style="font-weight:500;">${window.escapeHTML(item.title)}</span>
@@ -213,15 +239,22 @@ function initCommandPalette() {
         elements.forEach((el, idx) => {
             if (idx === selectedIndex) {
                 el.classList.add('active');
+                el.setAttribute('aria-selected', 'true');
+                input.setAttribute('aria-activedescendant', `cmd-item-${idx}`);
                 el.scrollIntoView({ block: 'nearest' });
             } else {
                 el.classList.remove('active');
+                el.setAttribute('aria-selected', 'false');
             }
         });
     }
 
+    const handleSearch = debounce((query) => {
+        renderCmdResults(query);
+    }, 150);
+
     input.addEventListener('input', (e) => {
-        renderCmdResults(e.target.value);
+        handleSearch(e.target.value);
     });
 
     input.addEventListener('keydown', (e) => {

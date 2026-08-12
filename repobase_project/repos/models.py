@@ -21,6 +21,11 @@ class Repository(models.Model):
     class Meta:
         verbose_name_plural = 'Repositories'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['owner', 'is_public']),
+            models.Index(fields=['name']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return self.name
