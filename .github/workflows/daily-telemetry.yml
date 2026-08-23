@@ -1,0 +1,44 @@
+name: Daily Health & Telemetry Sync
+
+on:
+  schedule:
+    # Runs daily at 03:15 UTC (08:45 AM IST)
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  telemetry-sync:
+    name: System Telemetry & Health Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Run Telemetry Diagnostics
+        run: |
+          python scripts/daily_telemetry.py
+
+      - name: Commit & Push Telemetry Snapshot
+        run: |
+          git config user.name "Thrilok Manjunath"
+          git config user.email "thrilokmanjunath@gmail.com"
+
+          if git status --porcelain telemetry | grep -q 'telemetry'; then
+            git add telemetry/
+            TODAY=$(date -u +'%Y-%m-%d')
+            git commit -m "chore(telemetry): automated daily health sync [$TODAY] [skip ci]"
+            git push origin main
+            echo "✅ Daily telemetry report committed and pushed successfully."
+          else
+            echo "ℹ️ No changes detected in telemetry."
+          fi
